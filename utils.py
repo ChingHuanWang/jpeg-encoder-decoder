@@ -3,6 +3,9 @@ from dct import dct_2d
 from quant import quantize
 from color_space import rgd_2_ycbcr
 
+def dec2bin(n):
+    return bin(n).replace("0b", "")
+
 def move_up_right(start_point, block):
     row, col = start_point[0], start_point[1]
     end_point = [col, row]
