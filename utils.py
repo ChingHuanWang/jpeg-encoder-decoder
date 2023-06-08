@@ -1,6 +1,7 @@
 import numpy as np
 from dct import dct_2d
 from quant import quantize
+from color_space import rgd_2_ycbcr
 
 def move_up_right(start_point, block):
     row, col = start_point[0], start_point[1]
@@ -64,36 +65,48 @@ def block_2_zigzag(block: np.array):
     return np.array(zz)
 
 
-def zigzag_2_dc(zigzag):
-    return zigzag[0]
-
-def zigzag_2_ac(zigzag):
-    return zigzag[1:]
 
 
 def img_2_dc_ac(img):
     
     rows, cols, _ = img.shape
     
-    blocks_count = (rows // 8) * (cols // 8)
-    if(rows % 8 != 0 or cols % 8 != 0):
+    blocks_count = (rows // 16) * (cols // 16)
+    if(rows % 16 != 0 or cols % 16 != 0):
         raise ValueError(("the width and height of the image "
                           "should both be mutiples of 8"))
     
-    dc = np.empty((blocks_count, 3))
-    ac = np.empty((blocks_count, 63, 3))
+    dc = np.empty((blocks_count, 6))
+    ac = np.empty((blocks_count, 63*6))
     block_idx = 0
     
-    for i in range(0, rows, 8):
-        for j in range(0, cols, 8):
-            for k in range(3):
-                block = img[i:i+8, j:j+8, k] - 128
-                dct_block = dct_2d(block)
-                quant_block = quantize(dct_block, 'lum' if k == 0 else 'chrom')
-                zigzag = block_2_zigzag(quant_block)
-                
-                dc[block_idx, k] = zigzag_2_dc(zigzag)
-                ac[block_idx, :, k] = zigzag_2_ac(zigzag)
+    for i in range(0, rows, 16):
+        for j in range(0, cols, 16):
+            mcu = img[i:i+16, j:j+16, :] - 128
+            
+            y, cb, cr = rgd_2_ycbcr(mcu)
+            dct_y, dct_cb, dct_cr = dct_2d(y, cb, cr)
+            
+            # do quantize
+            quant_y_1 = quantize(dct_y[0:8, 0:8], "lum")
+            quant_y_2 = quantize(dct_y[0:8, 8:16], "lum")
+            quant_y_3 = quantize(dct_y[8:16, 0:8], "lum")
+            quant_y_4 = quantize(dct_y[8:16, 8:16], "lum")
+            quant_cb = quantize(dct_cb, "chrom")
+            quant_cr = quantize(dct_cr, "chrom")
+            
+            # do zigzag
+            zz_y_1 = block_2_zigzag(quant_y_1)
+            zz_y_2 = block_2_zigzag(quant_y_2)
+            zz_y_3 = block_2_zigzag(quant_y_3)
+            zz_y_4 = block_2_zigzag(quant_y_4)
+            zz_cb = block_2_zigzag(quant_cb)
+            zz_cr = block_2_zigzag(quant_cr)
+            
+            
+            # import pdb; pdb.set_trace()
+            dc[block_idx, :] = np.array([zz_y_1[0], zz_y_2[0], zz_y_3[0], zz_y_4[0], zz_cb[0], zz_cr[0]]) 
+            ac[block_idx, :] = np.concatenate((zz_y_1[1:], zz_y_2[1:], zz_y_3[1:], zz_y_4[1:], zz_cb[1:], zz_cr[1:]), axis=None)
                 
     return dc, ac
                 
