@@ -64,17 +64,17 @@ class JpegEncoder:
             # Y
             if i % 6 < 4:
                 # DC
-                print(f'lum_dc_table = {self.lum_dc_table}')
+                # print(f'lum_dc_table = {self.lum_dc_table}')
                 dc_y = int(dc[i])
                 if dc_y == 0:
                     category = 0
-                    print(f'category = {category}')
+                    # print(f'category = {category}')
                     bitstreams += self.lum_dc_table['0']
                 else:
-                    print(f'dc_y = {dc_y}')
+                    # print(f'dc_y = {dc_y}')
                     category = str(len(dec2bin(abs(dc_y))))
-                    print(f'category = {category}')
-                    print(f'codeword = {self.lum_dc_table[category]}')
+                    # print(f'category = {category}')
+                    # print(f'codeword = {self.lum_dc_table[category]}')
                     bitstreams += self.lum_dc_table[category]
                     if dc_y > 0:
                         bitstreams += dec2bin(dc_y)
@@ -85,51 +85,72 @@ class JpegEncoder:
                         tmp = tmp.replace('x', '0')
                         bitstreams += tmp
                 
-                print(f'bitstreams = {bitstreams}')
-                input()
+                # print(f'bitstreams = {bitstreams}')
+                # input()
 
                 # AC
-                print(f'lum_ac_table = {self.lum_ac_table}')
+                # print(f'lum_ac_table = {self.lum_ac_table}')
                 ac_ys = ac[i * 63:(i + 1) * 63]
-                
-                for ac_y in ac_ys:
-                    pass
-                    # if dc_y == 0:
-                    #     category = 0
-                    #     print(f'category = {category}')
-                    #     bitstreams += self.lum_dc_table['0']
-                    # else:
-                    #     print(f'dc_y = {dc_y}')
-                    #     category = str(len(dec2bin(abs(dc_y))))
-                    #     print(f'category = {category}')
-                    #     print(f'codeword = {self.lum_dc_table[category]}')
-                    #     bitstreams += self.lum_dc_table[category]
-                    #     if dc_y > 0:
-                    #         bitstreams += dec2bin(dc_y)
-                    #     else:
-                    #         tmp = dec2bin(-dc_y)
-                    #         tmp = tmp.replace('1', 'x')
-                    #         tmp = tmp.replace('0', '1')
-                    #         tmp = tmp.replace('x', '0')
-                    #         bitstreams += tmp
+                # print(ac_ys)
+
+                # find last nonzero element
+                nonzero_inds = np.argwhere(ac_ys != 0).flatten()
+                if len(nonzero_inds) == 0:
+                    bitstreams += self.lum_ac_table['0/0']
+                    continue
+                last_nonzero_ind = nonzero_inds[-1]
                     
+                run = 0
+                for i in range(last_nonzero_ind + 1):
+                    ac_y = int(ac_ys[i])
+                    if ac_y > 0:
+                        size = len(dec2bin(ac_y))
+                        # print(f'run = {run}, size = {size}')
+                        sym = f'{hex(run).upper()[2:]}/{hex(size).upper()[2:]}'
+                        codeword = self.lum_ac_table[sym]
+                        # print(f'sym = {sym}, codeword = {codeword}')
+                        bitstreams += codeword
+                        
+                        bitstreams += dec2bin(ac_y)
+                        run = 0
+                    elif ac_y < 0:
+                        size = len(dec2bin(-ac_y))
+                        # print(f'run = {run}, size = {size}')
+                        sym = f'{hex(run).upper()[2:]}/{hex(size).upper()[2:]}'
+                        codeword = self.lum_ac_table[sym]
+                        # print(f'sym = {sym}, codeword = {codeword}')
+                        bitstreams += codeword
+                        
+                        tmp = dec2bin(-ac_y)
+                        tmp = tmp.replace('1', 'x')
+                        tmp = tmp.replace('0', '1')
+                        tmp = tmp.replace('x', '0')
+                        bitstreams += tmp
+                        run = 0
+                    else:
+                        if run == 15:
+                            bitstreams += self.lum_ac_table['F/0']
+                            run = 0
+                        else:
+                            run += 1
                     # print(f'bitstreams = {bitstreams}')
                     # input()
-
-                pass
+                if last_nonzero_ind != 62:
+                    bitstreams += self.lum_ac_table['0/0']
+                
             # Cb & Cr
             else:
-                print(f'chrom_dc_table = {self.chrom_dc_table}')
+                # print(f'chrom_dc_table = {self.chrom_dc_table}')
                 dc_c = int(dc[i])
                 if dc_c == 0:
                     category = 0
-                    print(f'category = {category}')
+                    # print(f'category = {category}')
                     bitstreams += self.chrom_dc_table['0']
                 else:
-                    print(f'dc_c = {dc_c}')
+                    # print(f'dc_c = {dc_c}')
                     category = str(len(dec2bin(abs(dc_c))))
-                    print(f'category = {category}')
-                    print(f'codeword = {self.chrom_dc_table[category]}')
+                    # print(f'category = {category}')
+                    # print(f'codeword = {self.chrom_dc_table[category]}')
                     bitstreams += self.chrom_dc_table[category]
                     if dc_c > 0:
                         bitstreams += dec2bin(dc_c)
@@ -140,17 +161,60 @@ class JpegEncoder:
                         tmp = tmp.replace('x', '0')
                         bitstreams += tmp
                 
-                print(f'bitstreams = {bitstreams}')
-                input()
+                # print(f'bitstreams = {bitstreams}')
+                # input()
 
                 # AC
+                # print(f'lum_ac_table = {self.chrom_ac_table}')
+                ac_cs = ac[i * 63:(i + 1) * 63]
+                # print(ac_cs)
 
-                pass
-
-
-
+                # find last nonzero element
+                nonzero_inds = np.argwhere(ac_cs != 0).flatten()
+                if len(nonzero_inds) == 0:
+                    bitstreams += self.lum_ac_table['0/0']
+                    continue
+                last_nonzero_ind = nonzero_inds[-1]
+                
+                run = 0
+                for i in range(last_nonzero_ind + 1):
+                    ac_c = int(ac_cs[i])
+                    if ac_c > 0:
+                        size = len(dec2bin(ac_c))
+                        # print(f'run = {run}, size = {size}')
+                        sym = f'{hex(run).upper()[2:]}/{hex(size).upper()[2:]}'
+                        codeword = self.chrom_ac_table[sym]
+                        # print(f'sym = {sym}, codeword = {codeword}')
+                        bitstreams += codeword
+                        
+                        bitstreams += dec2bin(ac_c)
+                        run = 0
+                    elif ac_c < 0:
+                        size = len(dec2bin(-ac_c))
+                        # print(f'run = {run}, size = {size}')
+                        sym = f'{hex(run).upper()[2:]}/{hex(size).upper()[2:]}'
+                        codeword = self.chrom_ac_table[sym]
+                        # print(f'sym = {sym}, codeword = {codeword}')
+                        bitstreams += codeword
+                        
+                        tmp = dec2bin(-ac_c)
+                        tmp = tmp.replace('1', 'x')
+                        tmp = tmp.replace('0', '1')
+                        tmp = tmp.replace('x', '0')
+                        bitstreams += tmp
+                        run = 0
+                    else:
+                        if run == 15:
+                            bitstreams += self.chrom_ac_table['F/0']
+                            run = 0
+                        else:
+                            run += 1
+                    # print(f'bitstreams = {bitstreams}')
+                    # input()
+                if last_nonzero_ind != 62:
+                    bitstreams += self.chrom_ac_table['0/0']
         
-
+        return (self.lum_dc_table, self.lum_ac_table, self.chrom_dc_table, self.chrom_ac_table), bitstreams
     def write_to_jpeg(self, img):
         
         # padding
@@ -220,20 +284,31 @@ class JpegEncoder:
         # DHT: DC, 0
         dhts, bitstream = self.img_2_huffman_code(img)
 
-
         data += [num for num in markers["DHT"]]
         dht_data = [0]
-        # get huffman table
-        # count
-        # symbols
-        # length
+        huffman_table = sorted(dhts[0].items(), key=lambda x: len(x[1]))
+        count = [0] * 16
+        symbols = []
+        for sym, code in huffman_table:
+            count[len(code) - 1] += 1
+            symbols += [int(sym[0], 16) * 16 + int(sym[-1], 16)]
 
-        length = len(dht_data) + 2
+        dht_data = count + symbols
+        length = 2 + len(dht_data)
         data += [length >> 8, length & 0xFF] + dht_data
 
         # DHT: AC, 0
         data += [num for num in markers["DHT"]]
         dht_data = [16]
+
+        huffman_table = sorted(dhts[1].items(), key=lambda x: len(x[1]))
+        count = [0] * 16
+        symbols = []
+        for sym, code in huffman_table:
+            count[len(code) - 1] += 1
+            symbols += [int(sym[0], 16) * 16 + int(sym[-1], 16)]
+
+        dht_data = count + symbols
 
         length = len(dht_data) + 2
         data += [length >> 8, length & 0xFF] + dht_data
@@ -242,12 +317,30 @@ class JpegEncoder:
         data += [num for num in markers["DHT"]]
         dht_data = [1]
 
+        huffman_table = sorted(dhts[2].items(), key=lambda x: len(x[1]))
+        count = [0] * 16
+        symbols = []
+        for sym, code in huffman_table:
+            count[len(code) - 1] += 1
+            symbols += [int(sym[0], 16) * 16 + int(sym[-1], 16)]
+
+        dht_data = count + symbols
+
         length = len(dht_data) + 2
         data += [length >> 8, length & 0xFF] + dht_data
 
         # DHT: AC, 1
         data += [num for num in markers["DHT"]]
         dht_data = [17]
+
+        huffman_table = sorted(dhts[3].items(), key=lambda x: len(x[1]))
+        count = [0] * 16
+        symbols = []
+        for sym, code in huffman_table:
+            count[len(code) - 1] += 1
+            symbols += [int(sym[0], 16) * 16 + int(sym[-1], 16)]
+
+        dht_data = count + symbols
 
         length = len(dht_data) + 2
         data += [length >> 8, length & 0xFF] + dht_data
@@ -268,12 +361,11 @@ class JpegEncoder:
         sos_data += [0, 63, 0]
         length = len(sos_data) + 2
         data += [length >> 8, length & 0xFF] + sos_data
-        print(data)
-        input()
 
         # compressed data
-
-        
+        times = math.ceil(len(bitstream) / 8)
+        bitstream += '0' * (times * 8 - len(bitstream))
+        data += [int(bitstream[i * 8:(i + 1) * 8], 2) for i in range(times)]
 
         # EOI
         data += [num for num in markers["EOI"]]
@@ -281,7 +373,8 @@ class JpegEncoder:
         data = np.array(data, dtype=np.uint8)
         
         print(f'data: {data.tobytes()}')
-        pass
+        with open('./output.jpg', 'wb') as f:
+            f.write(data.tobytes())
         
         
 if __name__ == "__main__":
