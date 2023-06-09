@@ -1,6 +1,6 @@
 import numpy as np
 from huffman_table import huffman_table
-from utils import dec2bin
+from utils import dec2bin, remove_dummy
 
 def get_lum_dc(dc):
     lum_dc = np.array([block[0:4] for block in dc])
@@ -36,10 +36,12 @@ def get_prob_and_category(component):
     
     return prob, list(category)
 
+
 def lum_dc_huffman_table(dc):
     
     lum_dc = get_lum_dc(dc)
     prob, category = get_prob_and_category(lum_dc)
+    prob, category = remove_dummy(prob, category)
     return huffman_table(prob, category)
 
 def chrom_dc_huffman_table(dc):
@@ -63,6 +65,7 @@ def chrom_dc_huffman_table(dc):
         p2 = cr_prob[i] if i < cr_category_len else 0
         prob[i] = (p1+p2) / 2
         
+    prob, category = remove_dummy(prob, category)
     sort = np.argsort(prob)
     prob = np.flip(prob[sort])
     category = list(np.flip(category[sort]))

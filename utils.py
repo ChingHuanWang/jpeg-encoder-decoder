@@ -6,6 +6,12 @@ from color_space import rgd_2_ycbcr
 def dec2bin(n):
     return bin(n).replace("0b", "")
 
+
+def remove_dummy(prob: np.array, category: np.array):
+    index = [idx for idx, p in enumerate(prob) if p == 0]
+    return np.delete(prob, index), np.delete(category, index)
+            
+
 def move_up_right(start_point, block):
     row, col = start_point[0], start_point[1]
     end_point = [col, row]

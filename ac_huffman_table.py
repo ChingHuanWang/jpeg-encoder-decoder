@@ -1,6 +1,6 @@
 import numpy as np
 from huffman_table import huffman_table
-from utils import dec2bin
+from utils import dec2bin, remove_dummy
 
 def get_lum_ac(ac):
     lum_ac = np.array([block[0:63*4] for block in ac])
@@ -62,7 +62,6 @@ def get_prob_and_category(component):
     
     prob, category = init_prob_and_category()
     prob_dict = dict(zip(category, prob))
-    
     for i in range(0, len(component), 63):
         seq = component[i:i+63]
         prob_dict = parse_seq(seq, prob_dict)
@@ -78,6 +77,7 @@ def lum_ac_huffman_table(ac):
     
     lum_ac = get_lum_ac(ac)
     prob, category = get_prob_and_category(lum_ac)
+    prob, category = remove_dummy(prob, category)
     return huffman_table(prob, category)
 
 def chrom_ac_huffman_table(ac):
@@ -86,10 +86,11 @@ def chrom_ac_huffman_table(ac):
     chrom_cr_ac = get_chrom_cr_ac(ac)
     
     cb_prob, cb_category = get_prob_and_category(chrom_cb_ac)
-    cr_prob, cr_category = get_prob_and_category(chrom_cr_ac)
+    cr_prob, _ = get_prob_and_category(chrom_cr_ac)
     
     category = cb_category
     prob = np.divide(cb_prob+cr_prob, 2)
+    prob, category = remove_dummy(prob, category)
     
     return huffman_table(prob, category)
     
