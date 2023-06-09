@@ -400,6 +400,7 @@ def decoder(args):
 
             image = Image.fromarray(np.uint8(img), mode="RGB")
             # print(np.array(img, dtype=np.uint8)[:2, :2])
+            image.save("./test2.jpg")
             image.show()
 
         elif markers[marker] == "EOI":
