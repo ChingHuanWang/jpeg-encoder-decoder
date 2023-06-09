@@ -13,6 +13,16 @@ class JpegEncoder:
         self.img_2_dc_ac = img_2_dc_ac
         
     def img_2_huffman_code(self, img):
+        dc, ac = self.img_2_dc_ac(img)
+        self.lum_dc_table = self.gen_lum_dc(dc)
+        self.lum_ac_table = self.gen_lum_ac(ac)
+        
+        self.chrom_dc_table = self.gen_chrom_dc(dc)
+        self.chrom_ac_table = self.gen_chrom_ac(ac)
+        
+        
+    
+    def write_to_jpeg():
         pass
         
         
