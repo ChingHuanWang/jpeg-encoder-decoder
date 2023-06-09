@@ -1,6 +1,15 @@
 import math
 import numpy as np
 
+def downsample(cb, cr):
+    downsampled_cb = np.zeros((8, 8))
+    downsampled_cr = np.zeros((8, 8))
+    for i in range(8):
+        for j in range(8):
+            downsampled_cb[i, j] = np.average(cb[i * 2:(i + 1) * 2, j * 2:(j + 1) * 2])
+            downsampled_cr[i, j] = np.average(cr[i * 2:(i + 1) * 2, j * 2:(j + 1) * 2])
+    return downsampled_cb, downsampled_cr
+
 def upsample(y, cb, cr, sof_infos):
 
     sampling_factor = sof_infos["sampling_factor"]

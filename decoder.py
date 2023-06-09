@@ -389,7 +389,13 @@ def decoder(args):
             ptr += tmp
 
             # dequantization
+            print(y.shape)
+            print(y[0])
+            input()
             y, cb, cr = dequantization(y, cb, cr, sof_infos, qts)
+            # print(y.shape)
+            # print(y[0])
+            # input()
             
             # IDCT
             y, cb, cr = idct_2d(y, cb, cr)

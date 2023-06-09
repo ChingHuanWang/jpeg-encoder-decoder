@@ -53,8 +53,8 @@ def parse_seq(seq, prob_dict):
                 run = 0
             else:
                 run += 1
-                
-    prob_dict["0/0"] += 1
+    if k != 62:
+        prob_dict["0/0"] += 1
     return prob_dict
     
 

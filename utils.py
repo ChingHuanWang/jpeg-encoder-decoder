@@ -1,7 +1,8 @@
 import numpy as np
 from dct import dct_2d
 from quant import quantize
-from color_space import rgd_2_ycbcr
+from color_space import rgb_2_ycbcr
+from sample import downsample
 
 def dec2bin(n):
     return bin(n).replace("0b", "")
@@ -73,9 +74,6 @@ def block_2_zigzag(block: np.array):
         
     return np.array(zz)
 
-
-
-
 def img_2_dc_ac(img):
     
     rows, cols, _ = img.shape
@@ -93,11 +91,14 @@ def img_2_dc_ac(img):
         for j in range(0, cols, 16):
             mcu = img[i:i+16, j:j+16, :]
             
-            y, cb, cr = rgd_2_ycbcr(mcu)
+            y, cb, cr = rgb_2_ycbcr(mcu)
+            cb, cr = downsample(cb, cr)
             dct_y, dct_cb, dct_cr = dct_2d(y, cb, cr)
             
             # do quantize
             quant_y_1 = quantize(dct_y[0:8, 0:8], "lum")
+            # print(quant_y_1)
+            # input()
             quant_y_2 = quantize(dct_y[0:8, 8:16], "lum")
             quant_y_3 = quantize(dct_y[8:16, 0:8], "lum")
             quant_y_4 = quantize(dct_y[8:16, 8:16], "lum")
@@ -116,6 +117,7 @@ def img_2_dc_ac(img):
             # import pdb; pdb.set_trace()
             dc[block_idx, :] = np.array([zz_y_1[0], zz_y_2[0], zz_y_3[0], zz_y_4[0], zz_cb[0], zz_cr[0]]) 
             ac[block_idx, :] = np.concatenate((zz_y_1[1:], zz_y_2[1:], zz_y_3[1:], zz_y_4[1:], zz_cb[1:], zz_cr[1:]), axis=None)
+            block_idx += 1
                 
     return dc, ac
                 

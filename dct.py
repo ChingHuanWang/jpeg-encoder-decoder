@@ -3,9 +3,11 @@ from scipy.fftpack import dct, idct
 
 def dct_2d(y, cb, cr):
 
-    y -= 128
-    y = dct(y.T, norm='ortho')
-    y = dct(y.T, norm='ortho')
+    for i in range(2):
+        for j in range(2):
+            y[i * 8:(i + 1) * 8, j * 8:(j + 1) * 8] -= 128
+            y[i * 8:(i + 1) * 8, j * 8:(j + 1) * 8] = dct(y[i * 8:(i + 1) * 8, j * 8:(j + 1) * 8].T, norm='ortho')
+            y[i * 8:(i + 1) * 8, j * 8:(j + 1) * 8] = dct(y[i * 8:(i + 1) * 8, j * 8:(j + 1) * 8].T, norm='ortho')
 
     cb -= 128
     cb = dct(cb.T, norm='ortho')

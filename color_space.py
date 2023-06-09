@@ -1,9 +1,11 @@
 import numpy as np
 
-def rgd_2_ycbcr(mcu):
+def rgb_2_ycbcr(mcu):
     
-
-    return np.random.randint(0, 256, (16, 16)), np.random.randint(0, 256, (8, 8)), np.random.randint(0, 256, (8, 8))
+    y = 0.299 * mcu[:, :, 0] + 0.587 * mcu[:, :, 1] + 0.114 * mcu[:, :, 2]
+    cb = 128 - 0.168736 * mcu[:, :, 0] - 0.331264 * mcu[:, :, 1] + 0.5 * mcu[:, :, 2]
+    cr = 128 + 0.5 * mcu[:, :, 0] - 0.418688 * mcu[:, :, 1] - 0.081312 * mcu[:, :, 2]
+    return y, cb, cr
 
 def ycbcr2rgb(img):
 

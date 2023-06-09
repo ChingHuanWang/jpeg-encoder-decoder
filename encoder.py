@@ -215,6 +215,7 @@ class JpegEncoder:
                     bitstreams += self.chrom_ac_table['0/0']
         
         return (self.lum_dc_table, self.lum_ac_table, self.chrom_dc_table, self.chrom_ac_table), bitstreams
+    
     def write_to_jpeg(self, img):
         
         # padding
