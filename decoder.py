@@ -282,7 +282,9 @@ def decode_compressed_data(data, sof_infos, sos_infos, dc_hts, ac_hts):
                             value = -int(tmp, 2)                    
                         ac.append(value)
                         ptr += size
-                    
+                    if len(ac) >= 63:
+                        break
+
                 if i == 0:
                     ac_ys.append(ac)
                 elif i == 1:
@@ -400,6 +402,7 @@ def decoder(args):
 
             image = Image.fromarray(np.uint8(img), mode="RGB")
             # print(np.array(img, dtype=np.uint8)[:2, :2])
+            image.save('./output.jpg')
             image.show()
 
         elif markers[marker] == "EOI":
