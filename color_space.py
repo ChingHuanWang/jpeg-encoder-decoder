@@ -1,4 +1,5 @@
 import numpy as np
+from PIL import Image
 
 def rgb_2_ycbcr(mcu):
     
@@ -6,6 +7,9 @@ def rgb_2_ycbcr(mcu):
     cb = 128 - 0.168736 * mcu[:, :, 0] - 0.331264 * mcu[:, :, 1] + 0.5 * mcu[:, :, 2]
     cr = 128 + 0.5 * mcu[:, :, 0] - 0.418688 * mcu[:, :, 1] - 0.081312 * mcu[:, :, 2]
     return y, cb, cr
+# def rgb_2_ycbcr(img):
+#     img = img.convert("YCbCr")
+#     return np.array(img, dtype=np.uint8)
 
 def ycbcr2rgb(img):
 

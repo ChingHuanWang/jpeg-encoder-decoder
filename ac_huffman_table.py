@@ -17,11 +17,11 @@ def get_chrom_cr_ac(ac):
 def init_prob_and_category():
     run_table = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"]
     size_table = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "A"]
-    category = ["0/0"]
+    category = ["0/0", "F/0"]
     for r in run_table:
         for s in size_table:
             category.append(r+"/"+s)
-            
+    
     prob = np.zeros(len(category))
     return prob, category
 
@@ -74,7 +74,7 @@ def get_prob_and_category(component):
     
     
 def lum_ac_huffman_table(ac):
-    
+
     lum_ac = get_lum_ac(ac)
     prob, category = get_prob_and_category(lum_ac)
     prob, category = remove_dummy(prob, category)

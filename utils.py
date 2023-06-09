@@ -74,8 +74,15 @@ def block_2_zigzag(block: np.array):
         
     return np.array(zz)
 
-def img_2_dc_ac(img):
+def split(mcu):
     
+    # mcu order Y CR CB
+    # return Y CB CR
+    return mcu[:, :, 0], mcu[:, :, 1], mcu[:, :, 2]
+
+
+def img_2_dc_ac(img):
+
     rows, cols, _ = img.shape
     
     blocks_count = (rows // 16) * (cols // 16)
@@ -92,7 +99,9 @@ def img_2_dc_ac(img):
             mcu = img[i:i+16, j:j+16, :]
             
             y, cb, cr = rgb_2_ycbcr(mcu)
-            cb, cr = downsample(cb, cr)
+            # cb, cr = downsample(cb, cr)
+            # y, cb, cr = split(mcu)
+            y, cb, cr = downsample(y, cb, cr)
             dct_y, dct_cb, dct_cr = dct_2d(y, cb, cr)
             
             # do quantize

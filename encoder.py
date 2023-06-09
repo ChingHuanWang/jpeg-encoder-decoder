@@ -20,21 +20,29 @@ class JpegEncoder:
         
         # print(f'lum_dc')
         self.lum_dc_table = self.gen_lum_dc(dc)
+        # print(f'self.lum_dc_table = {self.lum_dc_table}')
+        # input()
         # for row in self.lum_dc_table:
         #     print(row)
 
         # print(f'lum_ac')
         self.lum_ac_table = self.gen_lum_ac(ac)
+        # print(f'self.lum_ac_table = {self.lum_ac_table}')
+        # input()
         # for row in self.lum_ac_table:
         #     print(row)
         
         # print(f'chrom_dc')
         self.chrom_dc_table = self.gen_chrom_dc(dc)
+        # print(f'self.chrom_dc_table = {self.chrom_dc_table}')
+        # input()
         # for row in self.chrom_dc_table:
         #     print(row)
 
         # print(f'chrom_ac')
         self.chrom_ac_table = self.gen_chrom_ac(ac)
+        # print(f'self.chrom_ac_table = {self.chrom_ac_table}')
+        # input()
         # for row in self.chrom_ac_table:
         #     print(row)
         # dc: (209, 6), ac: (209, 378)
@@ -64,17 +72,17 @@ class JpegEncoder:
             # Y
             if i % 6 < 4:
                 # DC
-                # print(f'lum_dc_table = {self.lum_dc_table}')
+                print(f'lum_dc_table = {self.lum_dc_table}')
                 dc_y = int(dc[i])
                 if dc_y == 0:
                     category = 0
-                    # print(f'category = {category}')
+                    print(f'category = {category}')
                     bitstreams += self.lum_dc_table['0']
                 else:
-                    # print(f'dc_y = {dc_y}')
+                    print(f'dc_y = {dc_y}')
                     category = str(len(dec2bin(abs(dc_y))))
-                    # print(f'category = {category}')
-                    # print(f'codeword = {self.lum_dc_table[category]}')
+                    print(f'category = {category}')
+                    print(f'codeword = {self.lum_dc_table[category]}')
                     bitstreams += self.lum_dc_table[category]
                     if dc_y > 0:
                         bitstreams += dec2bin(dc_y)
@@ -85,8 +93,8 @@ class JpegEncoder:
                         tmp = tmp.replace('x', '0')
                         bitstreams += tmp
                 
-                # print(f'bitstreams = {bitstreams}')
-                # input()
+                print(f'bitstreams = {bitstreams}')
+                input()
 
                 # AC
                 # print(f'lum_ac_table = {self.lum_ac_table}')
@@ -284,19 +292,29 @@ class JpegEncoder:
 
         # DHT: DC, 0
         dhts, bitstream = self.img_2_huffman_code(img)
+        print(f'dhts[0] = {dhts[0]}')
+        input()
 
         data += [num for num in markers["DHT"]]
+        print(data)
+        input()
         dht_data = [0]
         huffman_table = sorted(dhts[0].items(), key=lambda x: len(x[1]))
+        print(f'huffman_table = {huffman_table}')
         count = [0] * 16
         symbols = []
         for sym, code in huffman_table:
             count[len(code) - 1] += 1
-            symbols += [int(sym[0], 16) * 16 + int(sym[-1], 16)]
+            symbols += [int(sym)]
 
-        dht_data = count + symbols
+        dht_data += count + symbols
+        print(f'count = {count}, symbols = {symbols}')
+        print(f'dht_data = {dht_data}')
         length = 2 + len(dht_data)
+        print(f'length = {[length >> 8, length & 0xFF]}')
         data += [length >> 8, length & 0xFF] + dht_data
+        print(data)
+        input()
 
         # DHT: AC, 0
         data += [num for num in markers["DHT"]]
@@ -309,7 +327,7 @@ class JpegEncoder:
             count[len(code) - 1] += 1
             symbols += [int(sym[0], 16) * 16 + int(sym[-1], 16)]
 
-        dht_data = count + symbols
+        dht_data += count + symbols
 
         length = len(dht_data) + 2
         data += [length >> 8, length & 0xFF] + dht_data
@@ -323,9 +341,9 @@ class JpegEncoder:
         symbols = []
         for sym, code in huffman_table:
             count[len(code) - 1] += 1
-            symbols += [int(sym[0], 16) * 16 + int(sym[-1], 16)]
+            symbols += [int(sym)]
 
-        dht_data = count + symbols
+        dht_data += count + symbols
 
         length = len(dht_data) + 2
         data += [length >> 8, length & 0xFF] + dht_data
@@ -341,7 +359,7 @@ class JpegEncoder:
             count[len(code) - 1] += 1
             symbols += [int(sym[0], 16) * 16 + int(sym[-1], 16)]
 
-        dht_data = count + symbols
+        dht_data += count + symbols
 
         length = len(dht_data) + 2
         data += [length >> 8, length & 0xFF] + dht_data
