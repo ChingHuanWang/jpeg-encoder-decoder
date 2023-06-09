@@ -1,5 +1,40 @@
 import numpy as np
 
+
+def tune_table(table, category_num):
+    
+    # sort sym by code len
+    table = table[0:category_num]
+    sym_list = np.array([row[0][:-1] for row in table])
+    code_list = np.array([row[4] for row in table])
+    code_len_list = np.array([len(code) for code in code_list])
+    sort = np.argsort(code_len_list)
+    sym_list = sym_list[sort]
+    code_list = code_list[sort]
+    code_len_list = code_len_list[sort]
+    
+    
+    # assign 
+    code = "0"*code_len_list[0]
+    final_code_list = [code]
+    for code_len in code_len_list[1:]:
+        if(code[-1] == '0'):
+            code = code[:-1] + '1'
+            code += '0'*abs(code_len-len(code))
+        else:
+            last_zero_idx = code.rfind('0')
+            code = code[0:last_zero_idx]+'1'
+            code += '0'*abs(code_len-len(code))
+            
+        final_code_list.append(code)
+        
+    if('0' not in final_code_list[-1]):
+        final_code_list[-1] += '0'
+    
+    return [[sym, code] for sym, code in zip(sym_list, final_code_list)]
+        
+            
+
 def huffman_table(prob, category):
     
     category_num = len(category)
@@ -45,14 +80,15 @@ def huffman_table(prob, category):
         table[left_node_idx][4] = comm_seq + "0"
         table[right_node_idx][4] = comm_seq + "1"
         
-    # extract individual category and code word    
-    table = table[0:category_num]
-    # table = [[row[0][:-1], row[4]] for row in table]
+    # print(f"table = {table}")
+    table = tune_table(table, category_num)
+    # print(f"after for table = {table}")
+    
     ht = {}
     for row in table:
         # print(row)
-        ht[row[0][:-1]] = row[4]
-    print(ht)
+        ht[row[0]] = row[1]
+    # print(ht)
     return ht
     
 
