@@ -19,3 +19,5 @@ def idct_2d(y, cb, cr):
     cr = idct(np.transpose(cr, (0, 2, 1)), norm='ortho', axis=2)
     cr = idct(np.transpose(cr, (0, 2, 1)), norm='ortho', axis=2)
     cr = np.round(cr + 128)
+
+    return y, cb, cr
