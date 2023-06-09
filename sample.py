@@ -1,6 +1,22 @@
 import math
 import numpy as np
 
+
+
+def downsample(y, cb, cr):
+    new_w, new_h = int(cb.shape[0]/2), int(cb.shape[1]/2)
+    cb_prime = np.zeros((new_h, new_w))
+    cr_prime = np.zeros((new_h, new_w))
+    mcu_h, mcu_w = cb.shape
+    k_w = 2
+    k_h = 2
+    for i in range(0, mcu_h, k_h):
+        for j in range(0, mcu_w, k_w):
+            cb_prime[int(i/k_h)][int(j/k_w)] = np.average(cb[i:i+k_h, j:j+k_w])
+            cr_prime[int(i/k_h)][int(j/k_w)] = np.average(cr[i:i+k_h, j:j+k_w])
+            
+    return y, cb_prime, cr_prime
+    
 def upsample(y, cb, cr, sof_infos):
 
     sampling_factor = sof_infos["sampling_factor"]

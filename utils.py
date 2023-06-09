@@ -1,7 +1,8 @@
 import numpy as np
 from dct import dct_2d
 from quant import quantize
-from color_space import rgd_2_ycbcr
+from color_space import rgb_2_ycbcr
+from sample import downsample
 
 def dec2bin(n):
     return bin(n).replace("0b", "")
@@ -73,11 +74,16 @@ def block_2_zigzag(block: np.array):
         
     return np.array(zz)
 
-
+def split(mcu):
+    
+    # mcu order Y CR CB
+    # return Y CB CR
+    return mcu[:, :, 0], mcu[:, :, 2], mcu[:, :, 1]
 
 
 def img_2_dc_ac(img):
     
+    img = rgb_2_ycbcr(img)
     rows, cols, _ = img.shape
     
     blocks_count = (rows // 16) * (cols // 16)
@@ -92,8 +98,8 @@ def img_2_dc_ac(img):
     for i in range(0, rows, 16):
         for j in range(0, cols, 16):
             mcu = img[i:i+16, j:j+16, :]
-            
-            y, cb, cr = rgd_2_ycbcr(mcu)
+            y, cb, cr = split(mcu)
+            y, cb, cr = downsample(y, cb, cr)
             dct_y, dct_cb, dct_cr = dct_2d(y, cb, cr)
             
             # do quantize
