@@ -57,8 +57,21 @@ def huffman_table(prob, category):
     while(len(prob) != 1):
 
         new_prob = prob[-2] + prob[-1]
-        new_sym = category[-2] + category[-1]
-        new_row = [new_sym, new_prob, node_set[category[-2]], node_set[category[-1]], ""]
+
+        if category[-2].count('L') > category[-1].count('L'):
+            new_sym = category[-1] + category[-2]
+            new_row = [new_sym, new_prob, node_set[category[-1]], node_set[category[-2]], ""]
+        elif category[-2].count('L') == category[-1].count('L'):
+            if category[-2][0] > category[-1][0]:
+                new_sym = category[-1] + category[-2]
+                new_row = [new_sym, new_prob, node_set[category[-1]], node_set[category[-2]], ""]
+            else:
+                new_sym = category[-2] + category[-1]
+                new_row = [new_sym, new_prob, node_set[category[-2]], node_set[category[-1]], ""]
+        else:
+            new_sym = category[-2] + category[-1]
+            new_row = [new_sym, new_prob, node_set[category[-2]], node_set[category[-1]], ""]
+
         table = [*table, new_row]
         node_set[new_sym] = len(node_set)
         prob = np.array([*prob[:-2], new_prob])

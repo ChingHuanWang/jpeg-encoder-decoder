@@ -291,6 +291,13 @@ def decode_compressed_data(data, sof_infos, sos_infos, dc_hts, ac_hts):
                     ac_cbs.append(ac)
                 elif i == 2:
                     ac_crs.append(ac)
+    print(len(dc_y))
+    print(len(ac_ys))
+    print(len(dc_cb))
+    # print(ac_cbs.shape)
+    # print(dc_cr.shape)
+    # print(ac_crs.shape)
+    input()
 
     return build_matrix(dc_y, ac_ys, dc_cb, ac_cbs, dc_cr, ac_crs)
 
@@ -389,13 +396,7 @@ def decoder(args):
             ptr += tmp
 
             # dequantization
-            # print(y.shape)
-            # print(y[1])
-            # input()
             y, cb, cr = dequantization(y, cb, cr, sof_infos, qts)
-            # print(y.shape)
-            # print(y[0])
-            # input()
             
             # IDCT
             y, cb, cr = idct_2d(y, cb, cr)
@@ -407,7 +408,6 @@ def decoder(args):
             img = ycbcr2rgb(img)
 
             image = Image.fromarray(np.uint8(img), mode="RGB")
-            # print(np.array(img, dtype=np.uint8)[:2, :2])
             image.save('./output.jpg')
             image.show()
 
