@@ -4,10 +4,13 @@ def huffman_table(prob, category):
     
     category_num = len(category)
     
+    category = list(category)
     # init huffman table
     for i in range(len(category)):
-        category[i] = str(i) + "L"
-        
+        if isinstance(category[i], np.int32):
+            category[i] = str(category[i]) + 'L'
+        else:
+            category[i] += 'L'
         
     node_set = dict(zip(category, list(range(len(category)))))
     table = [[] for i in range(len(prob))]
@@ -17,7 +20,7 @@ def huffman_table(prob, category):
         
     # generate rest row of table
     while(len(prob) != 1):
-        
+
         new_prob = prob[-2] + prob[-1]
         new_sym = category[-2] + category[-1]
         new_row = [new_sym, new_prob, node_set[category[-2]], node_set[category[-1]], ""]
@@ -44,8 +47,13 @@ def huffman_table(prob, category):
         
     # extract individual category and code word    
     table = table[0:category_num]
-    table = [[row[0][:-1], row[4]] for row in table]
-    return table
+    # table = [[row[0][:-1], row[4]] for row in table]
+    ht = {}
+    for row in table:
+        # print(row)
+        ht[row[0][:-1]] = row[4]
+    print(ht)
+    return ht
     
 
 

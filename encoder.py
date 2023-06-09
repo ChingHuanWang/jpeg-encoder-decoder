@@ -1,7 +1,9 @@
+import math
 
 from dc_huffman_table import lum_dc_huffman_table, chrom_dc_huffman_table
 from ac_huffman_table import lum_ac_huffman_table, chrom_ac_huffman_table
-from utils import img_2_dc_ac
+from utils import img_2_dc_ac, block_2_zigzag, dec2bin
+from quant import load_quantization_mat
 
 class JpegEncoder:
     
@@ -13,17 +15,279 @@ class JpegEncoder:
         self.img_2_dc_ac = img_2_dc_ac
         
     def img_2_huffman_code(self, img):
+        
         dc, ac = self.img_2_dc_ac(img)
+        
+        # print(f'lum_dc')
         self.lum_dc_table = self.gen_lum_dc(dc)
+        # for row in self.lum_dc_table:
+        #     print(row)
+
+        # print(f'lum_ac')
         self.lum_ac_table = self.gen_lum_ac(ac)
+        # for row in self.lum_ac_table:
+        #     print(row)
         
+        # print(f'chrom_dc')
         self.chrom_dc_table = self.gen_chrom_dc(dc)
+        # for row in self.chrom_dc_table:
+        #     print(row)
+
+        # print(f'chrom_ac')
         self.chrom_ac_table = self.gen_chrom_ac(ac)
+        # for row in self.chrom_ac_table:
+        #     print(row)
+        # dc: (209, 6), ac: (209, 378)
+        dc_y = dc[:, :4]
+        dc_y = dc_y.flatten()
+        first = dc_y[0]
+        dc_y = np.insert(np.diff(dc_y), 0, first)
+        dc_y = dc_y.reshape((len(dc_y) // 4, 4))
+        dc[:, :4] = dc_y
+
+        dc_cb = dc[:, 4]
+        first = dc_cb[0]
+        dc_cb = np.insert(np.diff(dc_cb), 0, first)
+        dc[:, 4] = dc_cb
+
+        dc_cr = dc[:, 5]
+        first = dc_cr[0]
+        dc_cr = np.insert(np.diff(dc_cr), 0, first)
+        dc[:, 5] = dc_cr
+
+        dc = dc.flatten()
+        ac = ac.flatten()
+
+        run_times = len(dc)
+        bitstreams = ''
+        for i in range(run_times):
+            # Y
+            if i % 6 < 4:
+                # DC
+                print(f'lum_dc_table = {self.lum_dc_table}')
+                dc_y = int(dc[i])
+                if dc_y == 0:
+                    category = 0
+                    print(f'category = {category}')
+                    bitstreams += self.lum_dc_table['0']
+                else:
+                    print(f'dc_y = {dc_y}')
+                    category = str(len(dec2bin(abs(dc_y))))
+                    print(f'category = {category}')
+                    print(f'codeword = {self.lum_dc_table[category]}')
+                    bitstreams += self.lum_dc_table[category]
+                    if dc_y > 0:
+                        bitstreams += dec2bin(dc_y)
+                    else:
+                        tmp = dec2bin(-dc_y)
+                        tmp = tmp.replace('1', 'x')
+                        tmp = tmp.replace('0', '1')
+                        tmp = tmp.replace('x', '0')
+                        bitstreams += tmp
+                
+                print(f'bitstreams = {bitstreams}')
+                input()
+
+                # AC
+                print(f'lum_ac_table = {self.lum_ac_table}')
+                ac_ys = ac[i * 63:(i + 1) * 63]
+                
+                for ac_y in ac_ys:
+                    pass
+                    # if dc_y == 0:
+                    #     category = 0
+                    #     print(f'category = {category}')
+                    #     bitstreams += self.lum_dc_table['0']
+                    # else:
+                    #     print(f'dc_y = {dc_y}')
+                    #     category = str(len(dec2bin(abs(dc_y))))
+                    #     print(f'category = {category}')
+                    #     print(f'codeword = {self.lum_dc_table[category]}')
+                    #     bitstreams += self.lum_dc_table[category]
+                    #     if dc_y > 0:
+                    #         bitstreams += dec2bin(dc_y)
+                    #     else:
+                    #         tmp = dec2bin(-dc_y)
+                    #         tmp = tmp.replace('1', 'x')
+                    #         tmp = tmp.replace('0', '1')
+                    #         tmp = tmp.replace('x', '0')
+                    #         bitstreams += tmp
+                    
+                    # print(f'bitstreams = {bitstreams}')
+                    # input()
+
+                pass
+            # Cb & Cr
+            else:
+                print(f'chrom_dc_table = {self.chrom_dc_table}')
+                dc_c = int(dc[i])
+                if dc_c == 0:
+                    category = 0
+                    print(f'category = {category}')
+                    bitstreams += self.chrom_dc_table['0']
+                else:
+                    print(f'dc_c = {dc_c}')
+                    category = str(len(dec2bin(abs(dc_c))))
+                    print(f'category = {category}')
+                    print(f'codeword = {self.chrom_dc_table[category]}')
+                    bitstreams += self.chrom_dc_table[category]
+                    if dc_c > 0:
+                        bitstreams += dec2bin(dc_c)
+                    else:
+                        tmp = dec2bin(-dc_c)
+                        tmp = tmp.replace('1', 'x')
+                        tmp = tmp.replace('0', '1')
+                        tmp = tmp.replace('x', '0')
+                        bitstreams += tmp
+                
+                print(f'bitstreams = {bitstreams}')
+                input()
+
+                # AC
+
+                pass
+
+
+
         
+
+    def write_to_jpeg(self, img):
         
-    
-    def write_to_jpeg():
+        # padding
+        h, w, _ = img.shape
+        mcu_h, mcu_w = math.ceil(h / 16), math.ceil(w / 16)
+        tmp = np.zeros((mcu_h * 16, mcu_w * 16, 3))
+        tmp[:h, :w, :] = img
+        img = tmp
+
+        # define markers
+        markers = {
+            "SOI": b'\xff\xd8',      # start of image segment
+            "APP-0": b'\xff\xe0',    # JPEG/JFIF image segment
+            "COM": b'\xff\xfe',      # comment segment
+            "DQT": b'\xff\xdb',      # define quantization table segment
+            "SOF-0": b'\xff\xc0',    # start of frame-0
+            "DHT": b'\xff\xc4',      # define huffman table segment
+            "SOS": b'\xff\xda',      # start of scan segment
+            "EOI": b'\xff\xd9'       # end of image segment
+        }
+
+        # SOI
+        data = [num for num in markers["SOI"]]
+        
+        # APP-0
+        data += [num for num in markers["APP-0"]]
+        app0_data = b'\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00'
+        data += [num for num in app0_data]
+
+        # COM
+        # no comment
+
+        # DQT
+        data += [num for num in markers["DQT"]]
+
+        types = ["lum", "chrom"]
+        dqt_data = []
+        for i, t in enumerate(types):
+            dqt_data += [i]
+            qt = block_2_zigzag(load_quantization_mat(t)).tolist()
+            dqt_data += [int(num) for num in qt]
+        length = len(dqt_data) + 2
+
+        data += [length >> 8, length & 0xFF] + dqt_data
+
+        # SOF-0
+        data += [num for num in markers["SOF-0"]]
+        
+        precision = 8
+        height = h
+        width = w
+        n_components = 3
+        sampling_factor = [[2, 2], [1, 1], [1, 1]]
+        qt_table_nums = [0, 1, 1]
+        sof0_data = [precision, height >> 8, height & 0xFF, width >> 8, width & 0xFF, n_components]
+
+        for i in range(n_components):
+            sof0_data += [i + 1]
+            horizontal_factor, vertical_factor = sampling_factor[i]
+            qt_table_num = qt_table_nums[i]
+            sof0_data += [horizontal_factor * 16 + vertical_factor]
+            sof0_data += [qt_table_num]
+
+        length = len(sof0_data) + 2
+        data += [length >> 8, length & 0xFF] + sof0_data
+
+        # DHT: DC, 0
+        dhts, bitstream = self.img_2_huffman_code(img)
+
+
+        data += [num for num in markers["DHT"]]
+        dht_data = [0]
+        # get huffman table
+        # count
+        # symbols
+        # length
+
+        length = len(dht_data) + 2
+        data += [length >> 8, length & 0xFF] + dht_data
+
+        # DHT: AC, 0
+        data += [num for num in markers["DHT"]]
+        dht_data = [16]
+
+        length = len(dht_data) + 2
+        data += [length >> 8, length & 0xFF] + dht_data
+
+        # DHT: DC, 1
+        data += [num for num in markers["DHT"]]
+        dht_data = [1]
+
+        length = len(dht_data) + 2
+        data += [length >> 8, length & 0xFF] + dht_data
+
+        # DHT: AC, 1
+        data += [num for num in markers["DHT"]]
+        dht_data = [17]
+
+        length = len(dht_data) + 2
+        data += [length >> 8, length & 0xFF] + dht_data
+
+        # SOS
+        data += [num for num in markers["SOS"]]
+            # component
+        n_components = 3
+        sos_data = [n_components]
+
+            # component data
+        huffman_tables = [[0, 0], [1, 1], [1, 1]]
+        for i in range(n_components):
+            j, k = huffman_tables[i]
+            sos_data += [i + 1, j * 16 + k]
+
+            # bytes to skip
+        sos_data += [0, 63, 0]
+        length = len(sos_data) + 2
+        data += [length >> 8, length & 0xFF] + sos_data
+        print(data)
+        input()
+
+        # compressed data
+
+        
+
+        # EOI
+        data += [num for num in markers["EOI"]]
+
+        data = np.array(data, dtype=np.uint8)
+        
+        print(f'data: {data.tobytes()}')
         pass
         
         
-        
+if __name__ == "__main__":
+    from PIL import Image
+    import numpy as np
+    img = Image.open('./test.jpg')
+    img = np.array(img, dtype=np.uint8)
+    encoder = JpegEncoder()
+    bitstream = encoder.write_to_jpeg(img)

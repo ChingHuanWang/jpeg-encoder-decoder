@@ -41,7 +41,7 @@ def parse_seq(seq, prob_dict):
     for i in range(k+1):
         if(seq[i] > 0 or seq[i] < 0):
             tmp = abs(seq[i])
-            bin_tmp = dec2bin(tmp)
+            bin_tmp = dec2bin(int(tmp))
             size = size_table[len(bin_tmp)-1]
             sym = hex_dict[run]+"/"+size
             prob_dict[sym] += 1

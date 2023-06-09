@@ -85,13 +85,13 @@ def img_2_dc_ac(img):
         raise ValueError(("the width and height of the image "
                           "should both be mutiples of 8"))
     
-    dc = np.empty((blocks_count, 6))
-    ac = np.empty((blocks_count, 63*6))
+    dc = np.zeros((blocks_count, 6))
+    ac = np.zeros((blocks_count, 63*6))
     block_idx = 0
     
     for i in range(0, rows, 16):
         for j in range(0, cols, 16):
-            mcu = img[i:i+16, j:j+16, :] - 128
+            mcu = img[i:i+16, j:j+16, :]
             
             y, cb, cr = rgd_2_ycbcr(mcu)
             dct_y, dct_cb, dct_cr = dct_2d(y, cb, cr)

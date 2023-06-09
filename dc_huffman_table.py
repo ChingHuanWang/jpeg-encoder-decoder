@@ -17,6 +17,7 @@ def get_prob_and_category(component):
     component_diff = component
     component_diff[1:] -= component[0:-1]
     component_diff = abs(component_diff)
+    component_diff = component_diff.astype(int)
     component_diff_len = np.array([len(dec2bin(diff)) for diff in component_diff])
     
     prob = np.zeros(max(component_diff_len)+1)

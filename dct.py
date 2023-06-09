@@ -1,8 +1,21 @@
 import numpy as np
-from scipy.fftpack import idct
+from scipy.fftpack import dct, idct
 
 def dct_2d(y, cb, cr):
-    return np.random.randint(0, 256, (16, 16)), np.random.randint(0, 256, (8, 8)), np.random.randint(0, 256, (8, 8))
+
+    y -= 128
+    y = dct(y.T, norm='ortho')
+    y = dct(y.T, norm='ortho')
+
+    cb -= 128
+    cb = dct(cb.T, norm='ortho')
+    cb = dct(cb.T, norm='ortho')
+
+    cr -= 128
+    cr = dct(cr.T, norm='ortho')
+    cr = dct(cr.T, norm='ortho')
+
+    return y, cb, cr
 
 def idct_2d(y, cb, cr):
 
