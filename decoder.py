@@ -97,8 +97,6 @@ def get_qt(data):
     while ptr < length:
         pq, tq = data[ptr] >> 4, data[ptr] % 16
         table_len = 64 * (1 + pq)
-        # print(f'pq = {pq}, tq = {tq}')
-        # print(f'table_len = {table_len}')
         dtype = np.uint8 if pq == 0 else np.uint16
         table = np.frombuffer(data[ptr + 1:ptr + 1 + table_len], dtype=dtype)
         table = inv_zigzag(table)
@@ -174,11 +172,9 @@ def get_sos_infos(data):
 def remove_ff00(data):
     
     tmp = data.find(b'\xff\x00')
-    # print(f'tmp = {tmp}')
     while tmp != -1:
         data = data[:tmp+1] + data[tmp+2:]
         tmp = data.find(b'\xff\x00')
-        # print(f'tmp = {tmp}')
     return data
 
 def build_matrix(dc_y, ac_ys, dc_cb, ac_cbs, dc_cr, ac_crs):
@@ -291,13 +287,6 @@ def decode_compressed_data(data, sof_infos, sos_infos, dc_hts, ac_hts):
                     ac_cbs.append(ac)
                 elif i == 2:
                     ac_crs.append(ac)
-    print(len(dc_y))
-    print(len(ac_ys))
-    print(len(dc_cb))
-    # print(ac_cbs.shape)
-    # print(dc_cr.shape)
-    # print(ac_crs.shape)
-    input()
 
     return build_matrix(dc_y, ac_ys, dc_cb, ac_cbs, dc_cr, ac_crs)
 
@@ -319,8 +308,6 @@ def decoder(args):
     fn = args.input_file
     f = open(fn, 'rb')
     data = f.read()
-    # with open('./test1.txt', 'w') as f:
-    #     f.write(f'{data}')
 
     # parse
     ptr = 0
@@ -331,10 +318,10 @@ def decoder(args):
 
         (marker, ) = unpack(">H", data[ptr:ptr+2])
         ptr += 2
-        # print(f'marker = {hex(marker)}')
 
         if markers[marker]  == "SOI":
             print("start of image segment")
+            pass
 
         elif markers[marker] == "APP-0":
             print("JPEG/JFIF image segment")
@@ -344,52 +331,36 @@ def decoder(args):
         elif markers[marker] == "COM":
             print("comment segment")
             (length, ) = unpack(">H", data[ptr:ptr+2])
-            print(f'length = {length}')
-            print(f'data : {data[ptr:ptr+length]}')
             ptr += length
 
         elif markers[marker] == "DQT":
             print("define quantization table segment")
             (length, ) = unpack(">H", data[ptr:ptr+2])
-            # print(f'length = {length}')
             tqs, qt = get_qt(data[ptr:ptr+length])
             for i in range(len(tqs)):
                 qts[tqs[i]] = qt[i]
-            print(qts)
-            # print(f'data : {data[ptr:ptr+length]}')
             ptr += length
 
         elif markers[marker] == "SOF-0":
             print("start of frame-0")
             (length, ) = unpack(">H", data[ptr:ptr+2])
-            # print(f'length = {length}')
             sof_infos = get_img_info(data[ptr:ptr+length])
-            print(f'sof_infos = {sof_infos}')
-            # print(f'data : {data[ptr:ptr+length]}')
             ptr += length
         
         elif markers[marker] == "DHT":
             print("define huffman table segment")
             (length, ) = unpack(">H", data[ptr:ptr+2])
-            # print(f'length = {length}')
             infos, table = get_huffman_table(data[ptr:ptr+length])
             if infos[0] == "DC":
                 dc_hts[infos[1]] = table
             else:
                 ac_hts[infos[1]] = table
-            # print(dc_hts)
-            # print(ac_hts)
-            # print(f'data : {data[ptr:ptr+length]}')
             ptr += length
 
         elif markers[marker] == "SOS":
             print("start of scan segment")
             (length, ) = unpack(">H", data[ptr:ptr+2])
-            print(f'length = {length}')
             sos_infos = get_sos_infos(data[ptr:ptr+length])
-            print(f'sos_infos = {sos_infos}')
-            print(f'data : {data[ptr:ptr+length]}')
-            print(f'len(data): {len(data)}, ptr = {ptr}')
             ptr += length
             y, cb, cr = decode_compressed_data(data[ptr:-2], sof_infos, sos_infos, dc_hts, ac_hts)
             tmp = len(data[ptr:]) - 2
@@ -409,7 +380,6 @@ def decoder(args):
 
             image = Image.fromarray(np.uint8(img), mode="RGB")
             image.save('./output.jpg')
-            image.show()
 
         elif markers[marker] == "EOI":
             print("end of image segment")

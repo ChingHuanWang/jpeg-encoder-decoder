@@ -51,9 +51,7 @@ def chrom_dc_huffman_table(dc):
     cr_dc = get_chrom_cr_dc(dc)
     
     cb_prob, cb_category = get_prob_and_category(cb_dc)
-    print(f'cb_prob = {cb_prob}, cb_category = {cb_category}')
     cr_prob, cr_category = get_prob_and_category(cr_dc)
-    print(f'cr_prob = {cr_prob}, cr_category = {cr_category}')
     
     cb_category_len = max(cb_category)
     cr_category_len = max(cr_category)
@@ -63,16 +61,6 @@ def chrom_dc_huffman_table(dc):
     prob = np.zeros(max_category_len + 1)
     
     for i in range(len(category)):
-        
-        if i in cb_category:
-            print(f'cb_category.index({i}) = {cb_category.index(i)}')
-            print(cb_prob[cb_category.index(i)])
-
-        if i in cr_category:
-            print(f'cr_category.index({i}) = {cr_category.index(i)}')
-            print(cr_prob[cr_category.index(i)])
-
-
         p1 = cb_prob[cb_category.index(i)] if i in cb_category else 0
         p2 = cr_prob[cr_category.index(i)] if i in cr_category else 0
         prob[i] = (p1+p2) / 2
@@ -82,6 +70,4 @@ def chrom_dc_huffman_table(dc):
     prob = np.flip(prob[sort])
     category = list(np.flip(category[sort]))
     
-    print(f'prob = {prob}, category = {category}')
-
     return huffman_table(prob, category)

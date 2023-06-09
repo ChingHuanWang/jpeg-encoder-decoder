@@ -3,3 +3,4 @@ test.py
 __pycache__
 token.txt
 huffman_dict.m
+*.jpg

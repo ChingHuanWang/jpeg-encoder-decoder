@@ -99,15 +99,11 @@ def img_2_dc_ac(img):
             mcu = img[i:i+16, j:j+16, :]
             
             y, cb, cr = rgb_2_ycbcr(mcu)
-            # cb, cr = downsample(cb, cr)
-            # y, cb, cr = split(mcu)
             y, cb, cr = downsample(y, cb, cr)
             dct_y, dct_cb, dct_cr = dct_2d(y, cb, cr)
             
             # do quantize
             quant_y_1 = quantize(dct_y[0:8, 0:8], "lum")
-            # print(quant_y_1)
-            # input()
             quant_y_2 = quantize(dct_y[0:8, 8:16], "lum")
             quant_y_3 = quantize(dct_y[8:16, 0:8], "lum")
             quant_y_4 = quantize(dct_y[8:16, 8:16], "lum")

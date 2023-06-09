@@ -93,15 +93,11 @@ def huffman_table(prob, category):
         table[left_node_idx][4] = comm_seq + "0"
         table[right_node_idx][4] = comm_seq + "1"
         
-    # print(f"table = {table}")
     table = tune_table(table, category_num)
-    # print(f"after for table = {table}")
     
     ht = {}
     for row in table:
-        # print(row)
         ht[row[0]] = row[1]
-    # print(ht)
     return ht
     
 

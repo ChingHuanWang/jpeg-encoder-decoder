@@ -1,15 +1,6 @@
 import math
 import numpy as np
 
-# def downsample(cb, cr):
-#     downsampled_cb = np.zeros((8, 8))
-#     downsampled_cr = np.zeros((8, 8))
-#     for i in range(8):
-#         for j in range(8):
-#             downsampled_cb[i, j] = np.average(cb[i * 2:(i + 1) * 2, j * 2:(j + 1) * 2])
-#             downsampled_cr[i, j] = np.average(cr[i * 2:(i + 1) * 2, j * 2:(j + 1) * 2])
-#     return downsampled_cb, downsampled_cr
-
 def downsample(y, cb, cr):
     new_w, new_h = int(cb.shape[0]/2), int(cb.shape[1]/2)
     cb_prime = np.zeros((new_h, new_w))
@@ -31,7 +22,6 @@ def upsample(y, cb, cr, sof_infos):
     w, h = sof_infos["width"], sof_infos["height"]
 
     mcu_width, mcu_height = np.array(max(sampling_factor)) * 8
-    # print(mcu_width, mcu_height)
     w, h = math.ceil(w / mcu_width) * mcu_width, math.ceil(h / mcu_height) * mcu_height
     
     for ind, (i, j) in enumerate(sampling_factor):
