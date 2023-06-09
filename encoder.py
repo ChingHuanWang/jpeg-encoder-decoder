@@ -59,8 +59,8 @@ class JpegEncoder:
         length = len(dht_data) + 2
         dht_data = [length >> 8, length & 0xFF] + dht_data
         dht_data = np.array(dht_data, dtype=np.uint8).tobytes()
-        with open('./ac_0.txt', 'rb') as f:
-            dht_data = b'\x003\x10\x00\x02\x01\x03\x01\x06\x04\x05\x04\x01\x05\x00\x00\x00\x00\x00\x00\x01\x02\x03\x11!1\x04\x12AQaq\x05"\x81\xf0\x91\xa1\xb1\xc1\xd1\x13#2\xe1\x82\x06\x143b\xc2'
+        # with open('./ac_0.txt', 'rb') as f:
+        dht_data = b'\x003\x10\x00\x02\x01\x03\x01\x06\x04\x05\x04\x01\x05\x00\x00\x00\x00\x00\x00\x01\x02\x03\x11!1\x04\x12AQaq\x05"\x81\xf0\x91\xa1\xb1\xc1\xd1\x13#2\xe1\x82\x06\x143b\xc2'
         _, table = get_huffman_table(dht_data)
         table = {y: x for x, y in table.items()}
         self.lum_ac_table = table
@@ -110,8 +110,8 @@ class JpegEncoder:
         length = len(dht_data) + 2
         dht_data = [length >> 8, length & 0xFF] + dht_data
         dht_data = np.array(dht_data, dtype=np.uint8).tobytes()
-        with open('./ac_1.txt', 'rb') as f:
-            dht_data = b'\x00\x1f\x11\x01\x01\x01\x01\x00\x02\x02\x03\x01\x00\x00\x00\x00\x00\x00\x00\x00\x01\x11\x02!1\x03\x12"Aqa'
+        # with open('./ac_1.txt', 'rb') as f:
+        dht_data = b'\x00\x1f\x11\x01\x01\x01\x01\x00\x02\x02\x03\x01\x00\x00\x00\x00\x00\x00\x00\x00\x01\x11\x02!1\x03\x12"Aqa'
         _, table = get_huffman_table(dht_data)
         table = {y: x for x, y in table.items()}
         self.chrom_ac_table = table
@@ -149,7 +149,7 @@ class JpegEncoder:
             if i % 6 < 4:
                 # DC
                 # print(f'lum_dc_table = {self.lum_dc_table}')
-                dc_y = int(dc[i])
+                dc_y = round(dc[i])
                 if dc_y == 0:
                     category = 0
                     bitstreams += self.lum_dc_table['0']
@@ -168,8 +168,8 @@ class JpegEncoder:
                         tmp = tmp.replace('x', '0')
                         bitstreams += tmp
                 
-                print(f'bitstreams = {bitstreams}')
-                input()
+                # print(f'bitstreams = {bitstreams}')
+                # input()
 
                 # AC
                 # print(f'lum_ac_table = {self.lum_ac_table}')
@@ -185,7 +185,7 @@ class JpegEncoder:
                     
                 run = 0
                 for i in range(last_nonzero_ind + 1):
-                    ac_y = int(ac_ys[i])
+                    ac_y = round(ac_ys[i])
                     print(f'ac_y = {ac_y}')
                     if ac_y > 0:
                         size = len(dec2bin(ac_y))
@@ -218,15 +218,15 @@ class JpegEncoder:
                             run = 0
                         else:
                             run += 1
-                    print(f'bitstreams = {bitstreams}')
-                    input()
-                if last_nonzero_ind != 62:
-                    bitstreams += self.lum_ac_table[0]
+                    # print(f'bitstreams = {bitstreams}')
+                    # input()
+                # if last_nonzero_ind != 62:
+                bitstreams += self.lum_ac_table[0]
                 
             # Cb & Cr
             else:
                 # print(f'chrom_dc_table = {self.chrom_dc_table}')
-                dc_c = int(dc[i])
+                dc_c = round(dc[i])
                 if dc_c == 0:
                     category = 0
                     # print(f'category = {category}')
@@ -263,7 +263,7 @@ class JpegEncoder:
                 
                 run = 0
                 for i in range(last_nonzero_ind + 1):
-                    ac_c = int(ac_cs[i])
+                    ac_c = round(ac_cs[i])
                     if ac_c > 0:
                         size = len(dec2bin(ac_c))
                         # print(f'run = {run}, size = {size}')
@@ -298,8 +298,8 @@ class JpegEncoder:
                             run += 1
                     # print(f'bitstreams = {bitstreams}')
                     # input()
-                if last_nonzero_ind != 62:
-                    bitstreams += self.chrom_ac_table[0]
+                # if last_nonzero_ind != 62:
+                bitstreams += self.chrom_ac_table[0]
         
         print(self.lum_dc_table)
         print(self.lum_ac_table)
@@ -470,16 +470,20 @@ class JpegEncoder:
         # compressed data
         times = math.ceil(len(bitstream) / 8)
         bitstream += '0' * (times * 8 - len(bitstream))
-        data += [int(bitstream[i * 8:(i + 1) * 8], 2) for i in range(times)]
+        print(bitstream)
+        compressed_data = [int(bitstream[i * 8:(i + 1) * 8], 2) for i in range(times)]
 
         # EOI
-        data += [num for num in markers["EOI"]]
+        end = [num for num in markers["EOI"]]
 
         data = np.array(data, dtype=np.uint8)
+        bitstream = np.array(compressed_data, dtype=np.uint8)
+        bitstream = bitstream.tobytes().replace(b'\xff', b'\xff\x00')
+        end = np.array(end, dtype=np.uint8)
         
-        print(f'data: {data.tobytes()}')
+        print(f'data: {data.tobytes() + bitstream + end.tobytes()}')
         with open('./output.jpg', 'wb') as f:
-            f.write(data.tobytes())
+            f.write(data.tobytes() + bitstream + end.tobytes())
         
         
 if __name__ == "__main__":
