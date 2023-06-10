@@ -21,8 +21,6 @@ class JpegEncoder:
         
         self.lum_dc_table = self.gen_lum_dc(dc)
         self.lum_ac_table = self.gen_lum_ac(ac)
-        print(self.lum_ac_table)
-        input()
         self.chrom_dc_table = self.gen_chrom_dc(dc)
         self.chrom_ac_table = self.gen_chrom_ac(ac)
 
@@ -171,7 +169,7 @@ class JpegEncoder:
 
         return (self.lum_dc_table, self.lum_ac_table, self.chrom_dc_table, self.chrom_ac_table), bitstreams
     
-    def write_to_jpeg(self, img):
+    def write_to_jpeg(self, img, args):
         
         # padding
         h, w, _ = img.shape
@@ -332,7 +330,8 @@ class JpegEncoder:
         bitstream = bitstream.tobytes().replace(b'\xff', b'\xff\x00')
         end = np.array(end, dtype=np.uint8)
         
-        with open('./output.jpg', 'wb') as f:
+        fn = args.output_file
+        with open(fn, 'wb') as f:
             f.write(data.tobytes() + bitstream + end.tobytes())
         
         
@@ -340,12 +339,17 @@ if __name__ == "__main__":
     from PIL import Image
     import numpy as np
     import argparse
+    import time
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', "--input_file", type=str, help="path to the input image", required=True)
+    parser.add_argument('-o', "--output_file", type=str, default='./output.jpg', help="path to the output image")
     args = parser.parse_args()
     fn = args.input_file
     img = Image.open(fn)
     img = np.array(img, dtype=np.uint8)
     encoder = JpegEncoder()
-    bitstream = encoder.write_to_jpeg(img)
+    start_time = time.time()
+    bitstream = encoder.write_to_jpeg(img, args)
+    end_time = time.time()
+    print(f'time used: {end_time - start_time}s')

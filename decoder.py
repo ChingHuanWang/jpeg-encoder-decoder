@@ -5,6 +5,7 @@ import numpy as np
 from bitstring import BitArray
 from PIL import Image
 from struct import unpack
+import time
 
 from dct import idct_2d
 from quant import dequantization
@@ -378,8 +379,13 @@ def decoder(args):
             # color space transform
             img = ycbcr2rgb(img)
 
+            h, w = sof_infos["height"], sof_infos["width"]
+            img = img[:h, :w]
+            
             image = Image.fromarray(np.uint8(img), mode="RGB")
-            image.save('./output.jpg')
+
+            fn = args.output_file
+            image.save(fn)
 
         elif markers[marker] == "EOI":
             print("end of image segment")
@@ -392,9 +398,13 @@ def main():
     # get arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', "--input_file", type=str, help="path to the input image", required=True)
+    parser.add_argument('-o', "--output_file", type=str, default='./output.bmp', help="path to the output image")
     args = parser.parse_args()
 
+    start_time = time.time()
     decoder(args)
+    end_time = time.time()
+    print(f'time used: {end_time - start_time}s')
 
 
 if __name__ == "__main__":

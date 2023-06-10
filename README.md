@@ -1,6 +1,6 @@
 # jpeg-encoder-decoder
 ## 簡介
-在這次的final project，我們實作了python版本的baseline的jpeg的編碼器和解碼器。經過實驗比較，我們的mean square error為(?)，壓縮率為(?)，編碼和解碼的時間分別為(?)秒和(?)秒。除了baseline的壓縮算法，還有其他四種算法:
+在這次的final project，我們實作了python版本的baseline的jpeg的編碼器和解碼器。經過實驗比較，利用test.bmp，進行編碼時，我們所使用的時間約0.8s，壓縮率為20KB/463KB，進行解碼時，所使用的時間約為0.2s，MSE(mean square error)約為13.6。除了baseline的壓縮算法，還有其他四種算法:
 * 循序（sequential）
 * 遞進（progressive）
 * 層次（hierarchical）
